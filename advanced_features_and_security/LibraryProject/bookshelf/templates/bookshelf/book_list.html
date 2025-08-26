@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Book List</h1>
+
+<form method="get" action="{% url 'bookshelf:book_list' %}">
+    {% csrf_token %}
+    <input type="text" name="q" placeholder="Search books..." value="{{ query|default_if_none:'' }}">
+    <button type="submit">Search</button>
+</form>
+
+<ul>
+    {% for book in books %}
+        <li>{{ book.title|escape }} by {{ book.author|escape }} ({{ book.published_date }})</li>
+    {% empty %}
+        <li>No books found.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

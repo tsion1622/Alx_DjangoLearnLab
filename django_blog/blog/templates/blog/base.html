@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Blog{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <form action="{% url 'search_posts' %}" method="get" style="display:inline;">
+    <input type="text" name="q" placeholder="Search...">
+    <button type="submit">Go</button>
+</form>
+ 
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <ul>
+            <li><a href="{% url 'post_list' %}">All Posts</a></li>
+            <li><a href="{% url 'post_new' %}">New Post</a></li>
+            
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'logout' %}">Logout ({{ user.username }})</a></li>
+            {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <!-- Page Content -->
+    <main class="container">
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>
