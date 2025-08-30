@@ -12,7 +12,7 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-created_at']  
+        ordering = ['-created_at']  # most recent posts first
 
     def __str__(self):
         return f"{self.title} by {self.author.username}"
@@ -24,11 +24,11 @@ class Like(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('post', 'user')  # ensures a user can like a post only once
+        unique_together = ('post', 'user')  # prevents duplicate likes
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.username} liked {self.post.title}"
+        return f"{self.user.username} liked '{self.post.title}'"
 
 
 class Comment(models.Model):
@@ -39,7 +39,7 @@ class Comment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['-created_at']  # most recent comments first
 
     def __str__(self):
-        return f"{self.author.username} - {self.post.title}"
+        return f"{self.author.username} commented on '{self.post.title}'"

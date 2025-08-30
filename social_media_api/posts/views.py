@@ -1,22 +1,25 @@
-from rest_framework import viewsets, permissions, filters, status, generics
+from rest_framework import viewsets, permissions, filters, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.generics import get_object_or_404
+
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
-from .models import Post, Like
-from notifications.models import Notification
 
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer
-#from notifications.models import Notification
+from notifications.models import Notification
 
 User = get_user_model()
 
 
+# ---------------- Feed View ----------------
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def feed(request):
+    """
+    Returns posts from users that the current user is following, ordered by most recent.
+    """
     following_users = request.user.following.all()
     posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
     serializer = PostSerializer(posts, many=True)
@@ -30,6 +33,9 @@ class PostPagination(PageNumberPagination):
 
 # ---------------- Permissions ----------------
 class IsOwnerOrReadOnly(permissions.BasePermission):
+    """
+    Allows read-only access to everyone but write access only to the author.
+    """
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -63,7 +69,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def like_post(request, pk):
-    post = generics.get_object_or_404(Post, pk=pk)
+    """
+    Like a post. If already liked, returns 400.
+    Creates a notification for the post author.
+    """
+    post = get_object_or_404(Post, pk=pk)
     like, created = Like.objects.get_or_create(user=request.user, post=post)
     if not created:
         return Response({"detail": "You already liked this post."}, status=status.HTTP_400_BAD_REQUEST)
@@ -82,12 +92,13 @@ def like_post(request, pk):
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def unlike_post(request, pk):
-    post = generics.get_object_or_404(Post, pk=pk)
+    """
+    Unlike a post. If not liked before, returns 400.
+    """
+    post = get_object_or_404(Post, pk=pk)
     try:
         like = Like.objects.get(user=request.user, post=post)
         like.delete()
         return Response({"detail": "Post unliked."}, status=status.HTTP_200_OK)
     except Like.DoesNotExist:
         return Response({"detail": "You haven't liked this post."}, status=status.HTTP_400_BAD_REQUEST)
-    
-    
