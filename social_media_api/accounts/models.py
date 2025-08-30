@@ -8,3 +8,5 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+class CustomUser(AbstractUser):
+    following = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True)
