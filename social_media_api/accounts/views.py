@@ -1,42 +1,35 @@
 from rest_framework import generics, permissions
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.views import APIView
+from django.contrib.auth import get_user_model
+from .serializers import UserRegistrationSerializer
 
-from .models import User
-from .serializers import UserSerializer, RegisterSerializer, LoginSerializer
+User = get_user_model()
 
+# Register
 class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = RegisterSerializer
+    serializer_class = UserRegistrationSerializer
 
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        user = User.objects.get(username=response.data['username'])
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            "user": UserSerializer(user).data,
-            "token": token.key
-        })
-
+# Login
 class LoginView(ObtainAuthToken):
-    serializer_class = LoginSerializer
-
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data,
-                                           context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data
-        token, created = Token.objects.get_or_create(user=user)
+        response = super().post(request, *args, **kwargs)
+        token = Token.objects.get(key=response.data["token"])
         return Response({
-            "user": UserSerializer(user).data,
-            "token": token.key
+            "token": token.key,
+            "user_id": token.user_id,
+            "username": token.user.username
         })
 
-class ProfileView(APIView):
+# Profile
+class ProfileView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
+        user = request.user
+        return Response({
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+        })
