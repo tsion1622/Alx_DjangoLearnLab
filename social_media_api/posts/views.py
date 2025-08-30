@@ -11,7 +11,6 @@ from .serializers import PostSerializer, CommentSerializer
 User = get_user_model()
 
 
-# ---------------- Feed View ----------------
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def feed(request):

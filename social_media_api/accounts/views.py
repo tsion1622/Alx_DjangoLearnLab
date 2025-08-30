@@ -50,17 +50,15 @@ class ProfileView(APIView):
         s.save()
         return Response(s.data)
 
-
-# ---------------- Follow / Unfollow Views ----------------
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def follow_user(request, user_id):
     target_user = get_object_or_404(User, pk=user_id)
     if request.user == target_user:
         return Response({"detail": "You cannot follow yourself."}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     request.user.following.add(target_user)
-    return Response({"detail": f"You are now following {target_user.username}."}, status=status.HTTP_200_OK)
+    return Response({"detail": f"You are now following {target_user.username}."}, status=200)
 
 
 @api_view(['POST'])
@@ -69,6 +67,6 @@ def unfollow_user(request, user_id):
     target_user = get_object_or_404(User, pk=user_id)
     if request.user == target_user:
         return Response({"detail": "You cannot unfollow yourself."}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     request.user.following.remove(target_user)
-    return Response({"detail": f"You have unfollowed {target_user.username}."}, status=status.HTTP_200_OK)
+    return Response({"detail": f"You have unfollowed {target_user.username}."}, status=200)
