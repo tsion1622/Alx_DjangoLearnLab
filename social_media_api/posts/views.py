@@ -3,6 +3,9 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from .models import Post, Like
+from notifications.models import Notification
 
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer
@@ -86,3 +89,5 @@ def unlike_post(request, pk):
         return Response({"detail": "Post unliked."}, status=status.HTTP_200_OK)
     except Like.DoesNotExist:
         return Response({"detail": "You haven't liked this post."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    
